@@ -1,0 +1,166 @@
+---
+title: Contributing
+description: How to contribute to Better SVG development
+---
+
+## How to contribute
+
+Better SVG is an open-source project, and contributions are welcome! Whether you're fixing bugs, adding features, or improving documentation, your help makes the extension better for everyone.
+
+## Ways to contribute
+
+### Report bugs
+
+Found a bug? Help us fix it:
+
+1. Check [existing issues](https://github.com/midudev/better-svg/issues) to avoid duplicates
+2. [Open a new issue](https://github.com/midudev/better-svg/issues/new) with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - VS Code version and extension version
+   - Screenshots or error messages if applicable
+
+### Suggest features
+
+Have an idea for a new feature?
+
+1. Check if it's already been suggested in [GitHub Issues](https://github.com/midudev/better-svg/issues)
+2. Open a new issue with the "feature request" label
+3. Describe the feature and why it would be useful
+4. Include examples or mockups if possible
+
+### Submit code
+
+Ready to contribute code? Here's how:
+
+1. **Fork the repository** at [github.com/midudev/better-svg](https://github.com/midudev/better-svg)
+2. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/better-svg.git
+   cd better-svg
+   ```
+3. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+4. **Create a branch** for your changes:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+5. **Make your changes** and test thoroughly
+6. **Build the extension**:
+   ```bash
+   npm run compile
+   ```
+7. **Test your changes** in VS Code:
+   - Press `F5` to open a new Extension Development Host window
+   - Test your changes with various SVG files and scenarios
+8. **Commit your changes** with a clear message:
+   ```bash
+   git commit -m "Add: description of your feature"
+   ```
+9. **Push to your fork**:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+10. **Open a Pull Request** on GitHub
+
+## Development setup
+
+### Prerequisites
+
+- Node.js (24.x or later)
+- VS Code (1.85.0 or later)
+- Git
+
+### Project structure
+
+```
+better-svg/
+├── src/
+│   ├── extension.ts          # Main extension entry point
+│   ├── svgEditorProvider.ts  # Custom SVG editor
+│   ├── svgGutterPreview.ts   # Gutter icon provider
+│   ├── svgTransform.ts       # SVG optimization logic
+│   ├── utils.ts              # Utility functions
+│   ├── consts.ts            # Constants and configs
+│   └── webview/             # Webview HTML/CSS/JS
+├── dist/                     # Compiled output
+├── package.json              # Extension manifest
+└── tsconfig.json            # TypeScript config
+```
+
+### Available scripts
+
+- `npm run compile` - Build the extension
+- `npm run watch` - Watch mode for development
+- `npm run package` - Build for production
+- `npm run test` - Run tests
+- `npm run lint` - Lint TypeScript files
+- `npm run check-types` - Type check without emitting
+
+### Testing
+
+Make sure to test your changes with:
+
+- Various SVG files (simple and complex)
+- Different framework files (`.jsx`, `.tsx`, `.vue`, `.svelte`, `.astro`)
+- All configuration settings
+- Edge cases (invalid SVGs, large files, etc.)
+
+## Code guidelines
+
+### TypeScript
+
+- Use TypeScript for all new code
+- Follow existing code style and conventions
+- Run `npm run lint` before committing
+- Ensure `npm run check-types` passes
+
+### Commit messages
+
+Use clear, descriptive commit messages:
+
+- `Add: new feature description`
+- `Fix: bug description`
+- `Update: what was updated`
+- `Refactor: what was refactored`
+- `Docs: documentation changes`
+
+### Pull requests
+
+When opening a pull request:
+
+- Provide a clear title and description
+- Reference any related issues
+- Include screenshots for UI changes
+- Ensure all tests pass
+- Keep changes focused (one feature/fix per PR)
+
+## Getting help
+
+Need help with your contribution?
+
+- Check the [README](https://github.com/midudev/better-svg#readme) for basic information
+- Review existing code and pull requests for examples
+- Ask questions in your issue or pull request
+- Contact the maintainer: [hi@midu.dev](mailto:hi@midu.dev)
+
+## Code of conduct
+
+Be respectful and constructive in all interactions. This project is built by volunteers who care about making great tools for developers.
+
+## License
+
+By contributing to Better SVG, you agree that your contributions will be licensed under the [Apache-2.0 license](https://github.com/midudev/better-svg/blob/main/LICENSE).
+
+## Recognition
+
+All contributors are valued! Meaningful contributions will be recognized in:
+
+- GitHub's contributor list
+- Release notes (for significant features/fixes)
+- Project documentation
+
+Thank you for helping make Better SVG better!

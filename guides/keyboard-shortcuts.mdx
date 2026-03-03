@@ -1,0 +1,219 @@
+---
+title: Keyboard shortcuts and controls
+description: Learn about keyboard shortcuts, mouse controls, and navigation in Better SVG preview
+---
+
+Better SVG provides interactive controls for zooming, panning, and navigating your SVG previews. Learn how to use keyboard and mouse controls effectively.
+
+## Preview panel controls
+
+### Zoom controls
+
+Control the zoom level of your SVG preview using these methods:
+
+| Action | Control | Behavior |
+| ------ | ------- | -------- |
+| Zoom in | Click on SVG | Increases zoom by 50% (up to 1000%) |
+| Zoom out | Alt + Click on SVG | Decreases zoom by 20% (down to 10%) |
+| Zoom in (scroll) | Alt + Scroll up | Increases zoom by 10% increments |
+| Zoom out (scroll) | Alt + Scroll down | Decreases zoom by 10% increments |
+| Reset zoom | Click center icon | Resets to 100% zoom and centers SVG |
+
+```javascript
+// From main.js:144-158
+preview.addEventListener('click', (e) => {
+  if(wasPanning) return;
+
+  if (e.target === preview || e.target === svgWrapper || e.target.closest('svg')) {
+    // Check both the stored state and the event's altKey
+    if (isAltPressed || e.altKey) {
+      // Zoom out
+      scale = Math.max(0.1, scale - 0.2)
+    } else {
+      // Zoom in
+      scale = Math.min(10, scale + 0.5)
+    }
+    updateTransform()
+  }
+})
+```
+
+### Pan controls
+
+When zoomed in beyond 100%, you can pan around the SVG:
+
+| Action | Control | Requirement |
+| ------ | ------- | ----------- |
+| Pan | Click + Drag | Zoom must be > 100% |
+| Stop panning | Release mouse | - |
+
+```javascript
+// From main.js:170-180
+preview.addEventListener('mousedown', (e) => {
+  // Only start panning if clicking on the SVG with left button and not on color picker
+  if (e.button === 0 && scale > 1 && !e.target.closest('.preview-header-controls')) {
+    isPanning = true
+    wasPanning = false
+    panStartX = e.clientX - translateX
+    panStartY = e.clientY - translateY
+    preview.classList.add('grabbing')
+    e.preventDefault()
+  }
+})
+```
+
+The cursor automatically changes to indicate the current mode:
+- **Default**: Zoom in cursor
+- **Alt pressed**: Zoom out cursor  
+- **Panning**: Grabbing hand cursor
+
+### Toolbar controls
+
+The preview panel includes these toolbar buttons:
+
+| Icon | Function | Description |
+| ---- | -------- | ----------- |
+| Color swatch | Change currentColor | Click to open color picker |
+| Moon/Sun | Toggle background | Switch between light and dark background |
+| Center icon | Reset view | Reset zoom to 100% and center SVG |
+| Lightning bolt | Optimize | Run SVGO optimization on the file |
+
+## Hover preview controls
+
+When hovering over inline SVGs in your code:
+
+### Enable/disable hover preview
+
+Control hover preview in your settings:
+
+```json
+{
+  "betterSvg.enableHover": true // Show SVG preview on hover
+}
+```
+
+### Hover interaction
+
+<Steps>
+  <Step title="Trigger hover">
+    Move your cursor over any `<svg>` element in a supported file.
+  </Step>
+  
+  <Step title="View preview">
+    A popup appears showing:
+    - Visual preview of the SVG
+    - File size in bytes or KB
+    - Link to optimize the SVG
+  </Step>
+  
+  <Step title="Optimize from hover">
+    Click "⚡ Optimizar SVG" to optimize that specific inline SVG.
+  </Step>
+</Steps>
+
+## Gutter preview
+
+SVG icons appear in the editor gutter (next to line numbers) for inline SVGs:
+
+### Enable/disable gutter preview
+
+```json
+{
+  "betterSvg.showGutterPreview": true // Show SVG icons in gutter
+}
+```
+
+The gutter preview:
+- Shows a small (16px) preview of each SVG
+- Appears at the start of each `<svg>` tag
+- Updates automatically as you edit
+- Respects your current VS Code theme (dark/light)
+
+```typescript
+// From svgGutterPreview.ts:255-337
+public updateDecorations (editor: vscode.TextEditor) {
+  // Check if gutter preview is enabled in settings
+  const config = vscode.workspace.getConfiguration('betterSvg')
+  const showGutterPreview = config.get<boolean>('showGutterPreview', true)
+  if (!showGutterPreview) {
+    return
+  }
+
+  const text = editor.document.getText()
+  const svgRegex = /<svg[\s\S]*?>[\s\S]*?<\/svg>/g
+  const newDecorationTypes: vscode.TextEditorDecorationType[] = []
+
+  let match
+  while ((match = svgRegex.exec(text))) {
+    const startPos = editor.document.positionAt(match.index)
+    // Use a zero-length range at the start of the SVG to ensure only one gutter icon is shown
+    const range = new vscode.Range(startPos, startPos)
+
+    let svgContent = match[0]
+    // ... convert JSX, add xmlns, handle currentColor ...
+    
+    const decorationType = vscode.window.createTextEditorDecorationType({
+      gutterIconPath: vscode.Uri.parse(dataUri),
+      gutterIconSize: 'contain'
+    })
+
+    editor.setDecorations(decorationType, [{ range }])
+  }
+}
+```
+
+## Keyboard state tracking
+
+Better SVG carefully tracks the Alt key state to provide smooth zoom control:
+
+```javascript
+// From main.js:207-226
+// Track Alt key state
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Alt' || e.key === 'Option') {
+    isAltPressed = true
+    preview.classList.add('zoom-out-cursor')
+  }
+})
+
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'Alt' || e.key === 'Option') {
+    isAltPressed = false
+    preview.classList.remove('zoom-out-cursor')
+  }
+})
+
+// Reset Alt state when window loses focus
+window.addEventListener('blur', () => {
+  isAltPressed = false
+  preview.classList.remove('zoom-out-cursor')
+})
+```
+
+This ensures:
+- Cursor changes immediately when Alt is pressed
+- Alt state is cleared when the window loses focus
+- Works on both Windows/Linux (Alt) and macOS (Option)
+
+## Settings reference
+
+All keyboard and control settings:
+
+```json
+{
+  // Hover preview
+  "betterSvg.enableHover": true,
+  
+  // Gutter preview
+  "betterSvg.showGutterPreview": true,
+  
+  // Preview panel
+  "betterSvg.autoReveal": true,
+  "betterSvg.autoCollapse": true,
+  
+  // Color picker
+  "betterSvg.defaultColor": "#ffffff"
+}
+```
+
+See [Configuration](/configuration/settings) for more details on each setting.

@@ -1,0 +1,165 @@
+---
+title: Hover preview
+description: Preview SVG elements inline by hovering over them in your code
+---
+
+Hover preview shows a visual preview of SVG code when you hover your cursor over SVG elements in supported files. This feature works across multiple file types including React, Vue, Svelte, Astro, and more.
+
+## How it works
+
+When you hover over an SVG element in your code, Better SVG displays:
+- A rendered preview of the SVG
+- The file size in bytes or KB
+- A link to optimize the SVG directly from the hover tooltip
+
+<Note>
+The hover preview uses a 5-second cache to improve performance and reduce rendering overhead.
+</Note>
+
+## Supported languages
+
+Hover preview works in the following file types:
+
+- Astro (`.astro`)
+- EJS (`.ejs`)
+- ERB (`.erb`)
+- HTML (`.html`)
+- JavaScript (`.js`)
+- JavaScript React (`.jsx`)
+- Liquid (`.liquid`)
+- PHP (`.php`)
+- Svelte (`.svelte`)
+- SVG (`.svg`)
+- TypeScript (`.ts`)
+- TypeScript React (`.tsx`)
+- Vue (`.vue`)
+- XML (`.xml`)
+
+<Tip>
+The extension automatically detects SVG elements using the regex pattern `<svg[\s\S]*?>[\s\S]*?<\/svg>` to find complete SVG tags.
+</Tip>
+
+## Configuration
+
+Enable or disable hover preview:
+
+```json
+{
+  "betterSvg.enableHover": true
+}
+```
+
+- **Default:** `true`
+- **Type:** `boolean`
+- **Description:** Enable hover preview for SVG elements in supported files
+
+When disabled, hovering over SVG elements will not show any preview.
+
+## JSX and framework support
+
+The hover preview intelligently handles JSX and framework-specific syntax:
+
+### React/JSX transformation
+
+For `.jsx` and `.tsx` files, the extension automatically:
+- Converts `className` to `class`
+- Transforms camelCase attributes to kebab-case (e.g., `strokeWidth` → `stroke-width`)
+- Handles JSX expression values like `{2}` by encoding them for preview
+- Preserves event handlers and dynamic attributes
+
+### Framework directives
+
+The extension recognizes and preserves:
+- Vue directives: `v-`, `:`, `@`
+- Svelte directives: `on:`, `bind:`, `class:`, `use:`, etc.
+- Astro directives: `client:`
+
+<Warning>
+SVGs with JSX expressions or template interpolations (like `{variable}`) may not render properly in the preview. The extension will skip showing a preview if it detects unresolvable dynamic content.
+</Warning>
+
+## Theme-aware rendering
+
+The hover preview adapts to your VS Code theme:
+
+- **Dark themes:** `currentColor` is replaced with `#ffffff` (white)
+- **Light themes:** `currentColor` is replaced with `#000000` (black)
+- **High contrast:** Uses white for better visibility
+
+This ensures SVGs are always visible regardless of your color scheme.
+
+## Size display
+
+The hover preview shows the file size of the SVG:
+
+- **< 1 KB:** Displayed in bytes (e.g., "342 bytes")
+- **≥ 1 KB:** Displayed in kilobytes with 2 decimal places (e.g., "2.45 KB")
+
+<Note>
+The size calculation uses `Buffer.byteLength` to accurately measure the UTF-8 encoded size of the SVG content.
+</Note>
+
+## Inline optimization
+
+Each hover preview includes an "Optimizar SVG" link that allows you to optimize the SVG without leaving your current file.
+
+When clicked, the optimization:
+1. Extracts the exact SVG element at the cursor position
+2. Runs SVGO optimization with framework-aware settings
+3. Replaces the original SVG with the optimized version in place
+4. Shows a notification with the size reduction achieved
+
+<Tip>
+Inline optimization preserves framework-specific syntax like `className` and event handlers in React files.
+</Tip>
+
+## Minimum size enforcement
+
+To ensure visibility in the hover tooltip, the extension enforces a minimum size of 128px:
+
+- If the SVG has no `width` or `height`, dimensions are calculated from the `viewBox`
+- If the SVG is smaller than 128px, it's scaled up proportionally
+- The aspect ratio is always preserved during scaling
+
+## Stroke and fill propagation
+
+The extension intelligently propagates stroke and fill attributes from parent SVG elements to children:
+
+```jsx
+<svg stroke="red">
+  <path d="M0 0 L10 10" /> {/* Automatically receives stroke="red" */}
+</svg>
+```
+
+This ensures SVGs render correctly even when styling is defined at the root level.
+
+## Technical implementation
+
+The hover provider is implemented in `svgGutterPreview.ts:32`:
+
+- **Provider class:** `SvgHoverProvider`
+- **Cache duration:** 5 seconds
+- **Encoding:** Base64 data URIs for reliable rendering
+- **Validation:** Skips SVGs with unresolved JSX expressions
+
+The provider uses the `vscode.languages.registerHoverProvider` API to inject hover previews into all supported language modes.
+
+## Best practices
+
+<Tip>
+Use hover preview to quickly verify SVG appearance without switching to the preview panel.
+</Tip>
+
+- Hover over SVGs to check their visual appearance before committing changes
+- Use the inline optimize link to reduce file size of embedded SVGs
+- If a preview doesn't appear, check that your SVG has valid closing tags
+- For dynamic SVGs with expressions, test with the preview panel instead
+
+## Performance considerations
+
+The hover preview includes several optimizations:
+
+- **Debouncing:** 5-second cache prevents redundant rendering
+- **Lazy rendering:** Previews only generate when you actually hover
+- **Validation:** Invalid or unrenderable SVGs are skipped
+- **Base64 encoding:** Reduces rendering issues with special characters

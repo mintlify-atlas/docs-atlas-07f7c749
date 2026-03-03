@@ -1,0 +1,129 @@
+---
+title: Preview panel
+description: View and interact with your SVG files in the Explorer sidebar panel
+---
+
+The Explorer sidebar preview panel provides a dedicated space to view and interact with your SVG files while you edit them. The panel automatically appears when you open an SVG file and displays a live preview that updates as you make changes.
+
+## Opening the preview panel
+
+The preview panel appears in the Explorer sidebar under the name "SVG Preview". By default, it automatically reveals when you open an SVG file.
+
+<Note>
+The panel uses VS Code's webview technology to render SVG content safely and efficiently.
+</Note>
+
+## Auto-reveal behavior
+
+Configure whether the panel automatically opens when you work with SVG files:
+
+```json
+{
+  "betterSvg.autoReveal": true
+}
+```
+
+- **Default:** `true`
+- **Type:** `boolean`
+- **Description:** Automatically reveals and expands the SVG Preview panel when opening SVG files
+
+When enabled (default), the panel will:
+- Automatically focus when you open an SVG file
+- Stay visible as long as an SVG file is open
+- Update the preview when you switch between different SVG files
+
+## Auto-collapse behavior
+
+Control whether the panel collapses when you close all SVG files:
+
+```json
+{
+  "betterSvg.autoCollapse": true
+}
+```
+
+- **Default:** `true`
+- **Type:** `boolean`
+- **Description:** Automatically collapses the SVG Preview panel when closing all SVG files
+
+When enabled (default), the panel will:
+- Collapse when you close the last open SVG file
+- Clear the preview content
+- Remain collapsed until you open another SVG file
+
+<Tip>
+Disable auto-collapse if you want to keep the panel visible even when no SVG files are open.
+</Tip>
+
+## Live preview updates
+
+The preview panel updates in real-time as you edit your SVG files. Changes are reflected immediately without needing to save the file.
+
+The preview system:
+- Updates after a 500ms debounce to avoid excessive rendering
+- Maintains your zoom and pan settings during updates
+- Resets zoom when switching to a different SVG file
+- Automatically adjusts to theme changes
+
+## Preview features
+
+The panel provides several interactive features:
+
+- **Color picker** - Change the `currentColor` value to see how your SVG adapts to different colors
+- **Dark mode toggle** - Switch between light and transparent checkerboard backgrounds
+- **Zoom controls** - Zoom in/out and pan across your SVG
+- **Optimize button** - Trigger SVGO optimization directly from the panel
+- **File size display** - View the current size of your SVG in KB
+- **Zoom level indicator** - See the current zoom percentage
+
+<Note>
+All viewport controls (zoom, pan, center) are documented in detail in the [viewport controls](/features/viewport-controls) page.
+</Note>
+
+## CurrentColor configuration
+
+Set the default color that replaces `currentColor` in your SVG:
+
+```json
+{
+  "betterSvg.defaultColor": "#ffffff"
+}
+```
+
+- **Default:** `#ffffff` (white)
+- **Type:** `string`
+- **Format:** Hex color (e.g., `#ff0000`, `#f00`)
+- **Description:** Default color for `currentColor` in the SVG preview
+
+This setting affects:
+- The initial color when the panel opens
+- How SVGs using `currentColor` are displayed
+- The preview panel's color picker initial value
+
+<Warning>
+The color must be in hex format. Invalid colors will fall back to the default `#ffffff`.
+</Warning>
+
+## Technical details
+
+The preview panel is implemented using:
+- **Provider:** `SvgPreviewProvider` (extension.ts:38)
+- **View ID:** `betterSvg.preview`
+- **Location:** Explorer sidebar
+- **Webview options:** Retains context when hidden for better performance
+
+The panel communicates with the extension through message passing:
+- `update` - Updates the preview with new SVG content
+- `clear` - Clears the preview when no SVG is open
+- `optimize` - Triggers SVGO optimization
+
+## Best practices
+
+<Tip>
+Keep the preview panel visible while editing SVG files to see your changes in real-time.
+</Tip>
+
+- Use the color picker to test how your SVG responds to different `currentColor` values
+- Toggle dark background to verify your SVG works on different backgrounds
+- Use the optimize button to reduce file size while previewing the results
+- Disable auto-collapse if you frequently switch between SVG and other files

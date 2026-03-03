@@ -1,0 +1,286 @@
+---
+title: Optimization
+description: Reduce SVG file size with SVGO integration
+---
+
+Better SVG integrates SVGO (SVG Optimizer) to reduce file size by removing unnecessary data, formatting, and metadata from your SVG files. The extension provides multiple ways to optimize SVGs with intelligent defaults that preserve functionality.
+
+## Optimization methods
+
+There are three ways to optimize SVGs:
+
+### 1. Command palette
+
+Open the command palette and search for "Optimize SVG":
+
+1. Open an SVG file or select one in the editor
+2. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
+3. Type "Optimize SVG" and press Enter
+4. The file is optimized and saved
+
+### 2. Editor title button
+
+When viewing an SVG file, a lightning bolt icon appears in the editor title bar:
+
+- Click the ⚡ icon to optimize the current SVG file
+- The button only appears when the active file has a `.svg` extension
+- Located in the navigation section of the editor title
+
+### 3. Preview panel button
+
+The preview panel includes an optimize button in the header:
+
+- Click the lightning bolt icon in the preview panel header
+- Optimizes the currently previewed SVG file
+- Works even if the file hasn't been saved yet
+
+### 4. Hover preview link
+
+When hovering over SVG elements in supported files:
+
+- Click the "⚡ Optimizar SVG" link in the hover tooltip
+- Optimizes only the specific SVG element under the cursor
+- Preserves surrounding code and framework syntax
+
+<Tip>
+Inline optimization (via hover preview) is perfect for optimizing individual SVG icons in React components without affecting other code.
+</Tip>
+
+## SVGO configuration
+
+Better SVG uses SVGO with the following plugins:
+
+### Preset default
+
+Base configuration with overrides:
+
+```javascript
+{
+  name: 'preset-default',
+  params: {
+    overrides: {
+      cleanupIds: false,
+      removeUnknownsAndDefaults: true // Only for file optimization
+    }
+  }
+}
+```
+
+- **`cleanupIds: false`** - Preserves ID attributes to maintain references
+- **`removeUnknownsAndDefaults`** - Behavior depends on optimization context
+
+### Additional plugins
+
+```javascript
+[
+  'removeDoctype',
+  'removeComments',
+  {
+    name: 'removeAttrs',
+    params: {
+      attrs: [
+        'xmlns:xlink',
+        'xml:space',
+        'class' // Only when removeClasses is true
+      ]
+    }
+  }
+]
+```
+
+<Note>
+The `multipass: true` option ensures SVGO runs multiple optimization passes for maximum file size reduction.
+</Note>
+
+## File vs. inline optimization
+
+The extension uses different optimization strategies depending on the context:
+
+### File optimization
+
+When optimizing entire `.svg` files:
+
+- **Class removal:** Controlled by `betterSvg.removeClasses` setting (default: `true`)
+- **Unknown attributes:** Removed (e.g., `onClick`, `data-*`)
+- **Target:** Entire document content
+- **Trigger:** Command palette, editor button, or preview panel button
+
+### Inline optimization
+
+When optimizing SVG elements in code:
+
+- **Class preservation:** Classes are always preserved
+- **Unknown attributes:** Kept to maintain framework functionality
+- **JSX support:** Converts JSX ↔ SVG syntax as needed
+- **Target:** Only the specific SVG element under cursor
+- **Trigger:** Hover preview link
+
+<Warning>
+Inline optimization preserves framework-specific attributes like `className`, event handlers, and directives to prevent breaking your code.
+</Warning>
+
+## Configuration options
+
+### Remove classes
+
+Control whether class attributes are removed during file optimization:
+
+```json
+{
+  "betterSvg.removeClasses": true
+}
+```
+
+- **Default:** `true`
+- **Type:** `boolean`
+- **Description:** Remove class attributes from SVG elements during optimization
+- **Scope:** Only affects file optimization, not inline optimization
+
+When `true`:
+- `class` attributes are removed from all SVG elements
+- Reduces file size by eliminating unused CSS selectors
+- Recommended for standalone SVG files
+
+When `false`:
+- `class` attributes are preserved
+- Useful if your SVG relies on external CSS
+- Better for SVGs used with stylesheets
+
+## JSX transformation
+
+For inline optimization in React/JSX files, the extension:
+
+### Before optimization (JSX → SVG)
+
+1. Converts `className` to `class`
+2. Transforms camelCase to kebab-case (e.g., `strokeWidth` → `stroke-width`)
+3. Encodes JSX expressions (e.g., `{value}` → Base64)
+4. Preserves spread operators as `data-spread-*` attributes
+5. Removes JSX comments (`{/* */}` and `//`)
+
+### After optimization (SVG → JSX)
+
+1. Converts `class` back to `className`
+2. Transforms kebab-case back to camelCase
+3. Decodes JSX expressions from Base64
+4. Restores spread operators
+5. Maintains event handlers and dynamic attributes
+
+<Tip>
+The transformation is completely automatic. You can optimize SVG in React components without manually fixing the syntax.
+</Tip>
+
+## Language detection
+
+The extension automatically detects the file language to determine if camelCase conversion is needed:
+
+```typescript
+const options = {
+  useCamelCase: ['javascriptreact', 'typescriptreact'].includes(document.languageId)
+}
+```
+
+CamelCase is used for:
+- `javascriptreact` (`.jsx`)
+- `typescriptreact` (`.tsx`)
+
+Kebab-case is used for:
+- All other languages (Astro, Vue, Svelte, HTML, SVG, etc.)
+
+## Size reporting
+
+After optimization, a notification displays the file size reduction:
+
+### For files ≥ 1 KB
+
+```
+SVG optimized. Reduced from 3.45 KB to 2.12 KB (38.55% saved)
+```
+
+### For files < 1 KB
+
+```
+SVG optimized. Reduced from 512 bytes to 387 bytes (24.41% saved)
+```
+
+The notification includes:
+- Original size
+- Optimized size
+- Percentage saved
+- Formatted in KB or bytes depending on size
+
+<Note>
+Size calculation uses `Buffer.byteLength` with UTF-8 encoding for accurate byte counts.
+</Note>
+
+## Advanced: Plugin details
+
+The extension uses SVGO 4.0.0 (browser version) with these optimizations:
+
+### `removeDoctype`
+Removes XML DOCTYPE declarations:
+```xml
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" ...>
+<!-- Removed during optimization -->
+```
+
+### `removeComments`
+Removes XML comments:
+```xml
+<!-- This comment will be removed -->
+<svg>...</svg>
+```
+
+### `removeAttrs`
+Removes specified attributes:
+- `xmlns:xlink` - Legacy XLink namespace
+- `xml:space` - XML whitespace handling
+- `class` - Only if `removeClasses` is true
+
+### `cleanupIds: false`
+Preserves ID attributes:
+- Prevents breaking internal references (e.g., `url(#gradient)`)
+- Maintains links between elements
+- Ensures filters and masks continue working
+
+## Technical implementation
+
+Optimization functions are defined in `extension.ts`:
+
+- **`optimizeSvgDocument`** (extension.ts:301) - Optimizes entire SVG files
+- **`optimizeSvgInline`** (extension.ts:336) - Optimizes inline SVG elements
+- **`getSvgoPlugins`** (extension.ts:270) - Returns plugin configuration
+
+The transformation pipeline uses:
+- **`prepareForOptimization`** (svgTransform.ts:537) - Converts JSX to SVG before SVGO
+- **`finalizeAfterOptimization`** (svgTransform.ts:559) - Converts SVG back to JSX after SVGO
+
+## Best practices
+
+<Tip>
+Always preview your SVG after optimization to ensure it still renders correctly.
+</Tip>
+
+- **Test before committing:** Use the preview panel to verify optimization results
+- **Preserve classes when needed:** Set `removeClasses: false` for SVGs with external CSS
+- **Optimize inline SVGs:** Use hover preview optimization for embedded icons
+- **Check file size:** Compare before/after sizes in the notification
+- **Keep IDs:** The extension preserves IDs by default to maintain functionality
+
+## Error handling
+
+If optimization fails, you'll see an error notification:
+
+```
+Failed to optimize SVG: [error message]
+```
+
+Common causes:
+- Invalid SVG syntax
+- Malformed XML
+- SVGO parser errors
+- Unresolvable references
+
+<Warning>
+Optimization cannot be undone automatically. Use version control or manually undo changes if the result is incorrect.
+</Warning>

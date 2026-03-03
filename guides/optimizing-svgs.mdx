@@ -1,0 +1,167 @@
+---
+title: Optimizing SVGs
+description: Learn how to use SVGO optimization to reduce SVG file sizes in Better SVG
+---
+
+Better SVG provides built-in SVGO optimization to help you reduce SVG file sizes without losing quality. There are three ways to optimize SVGs depending on your workflow.
+
+## Optimization methods
+
+### Method 1: Toolbar button
+
+The quickest way to optimize an SVG file is using the toolbar button:
+
+<Steps>
+  <Step title="Open an SVG file">
+    Open any `.svg` file in VS Code.
+  </Step>
+  
+  <Step title="Click the optimize button">
+    Look for the lightning bolt (⚡) icon in the editor toolbar at the top-right corner.
+  </Step>
+  
+  <Step title="View optimization results">
+    A notification will show the file size reduction, for example:
+    ```
+    SVG optimized. Reduced from 12.34 KB to 8.56 KB (30.62% saved)
+    ```
+  </Step>
+</Steps>
+
+This method optimizes the entire SVG file and removes class attributes by default.
+
+### Method 2: Context menu
+
+You can also optimize SVG files directly from the editor context menu:
+
+<Steps>
+  <Step title="Right-click the SVG file">
+    Right-click anywhere in an open SVG file editor.
+  </Step>
+  
+  <Step title="Select 'Optimize SVG'">
+    Choose the "Optimize SVG" option from the context menu.
+  </Step>
+  
+  <Step title="Review the results">
+    The optimization will be applied and you'll see the file size savings in a notification.
+  </Step>
+</Steps>
+
+### Method 3: Hover preview
+
+For inline SVGs in your code, you can optimize them directly from the hover preview:
+
+<Steps>
+  <Step title="Hover over an inline SVG">
+    In any supported file (React, Vue, Svelte, Astro, HTML, etc.), hover over an SVG element.
+  </Step>
+  
+  <Step title="View the preview">
+    A preview popup will appear showing the SVG and its current size.
+  </Step>
+  
+  <Step title="Click 'Optimizar SVG'">
+    Click the "⚡ Optimizar SVG" link in the hover preview.
+  </Step>
+  
+  <Step title="Optimization applied">
+    The inline SVG will be optimized in place, preserving classes and framework-specific attributes.
+  </Step>
+</Steps>
+
+## How optimization works
+
+### Full file optimization
+
+When optimizing complete `.svg` files (methods 1 and 2), Better SVG:
+
+- Removes XML declarations and doctypes
+- Removes comments
+- Cleans up unnecessary attributes
+- Removes `class` attributes (configurable)
+- Removes `xmlns:xlink` and `xml:space` attributes
+- Runs SVGO's preset-default with multipass enabled
+
+```typescript
+// From extension.ts:301-334
+export async function optimizeSvgDocument (document: vscode.TextDocument) {
+  const svgContent = document.getText()
+
+  try {
+    const plugins = getSvgoPlugins(true)
+
+    const result = optimize(svgContent, {
+      multipass: true,
+      plugins
+    })
+
+    const edit = new vscode.WorkspaceEdit()
+    const fullRange = new vscode.Range(
+      document.positionAt(0),
+      document.positionAt(svgContent.length)
+    )
+    edit.replace(document.uri, fullRange, result.data)
+
+    await vscode.workspace.applyEdit(edit)
+
+    // Calculate savings
+    const originalSize = Buffer.byteLength(svgContent, 'utf8')
+    const optimizedSize = Buffer.byteLength(result.data, 'utf8')
+    const savingPercent = ((originalSize - optimizedSize) / originalSize * 100).toFixed(2)
+    // ...
+  }
+}
+```
+
+### Inline SVG optimization
+
+When optimizing inline SVGs (method 3), Better SVG:
+
+- Preserves `class` attributes (important for styling)
+- Preserves framework-specific attributes (see [Framework support](/guides/framework-support))
+- Detects JSX syntax and handles it appropriately
+- Converts JSX to valid SVG, optimizes, then converts back
+
+```typescript
+// From extension.ts:336-379
+export async function optimizeSvgInline (document: vscode.TextDocument, svgContent: string, range: vscode.Range) {
+  try {
+    const plugins = getSvgoPlugins(false) // false = preserve classes
+    const options = {
+      useCamelCase: ['javascriptreact', 'typescriptreact'].includes(document.languageId)
+    }
+
+    // Prepare SVG for optimization (convert JSX to valid SVG if needed)
+    const { preparedSvg, wasJsx } = prepareForOptimization(svgContent, options)
+
+    const result = optimize(preparedSvg, {
+      multipass: true,
+      plugins
+    })
+
+    // Convert back to JSX if the original was JSX
+    const finalSvg = finalizeAfterOptimization(result.data, wasJsx, options)
+    // ...
+  }
+}
+```
+
+## Configuration
+
+You can customize optimization behavior in your VS Code settings:
+
+```json
+{
+  "betterSvg.removeClasses": true // Remove class attributes during optimization
+}
+```
+
+Set to `false` if you want to preserve class attributes even in full file optimization.
+
+## Tips for best results
+
+- **Before optimization**: Always commit your changes to version control first, so you can review the optimization diff
+- **Inline SVGs**: Use the hover preview method to preserve framework-specific attributes and class names
+- **File size**: Optimization typically saves 20-40% on file size depending on the SVG source
+- **Quality**: SVGO optimization is lossless - your SVG will look exactly the same but with a smaller file size

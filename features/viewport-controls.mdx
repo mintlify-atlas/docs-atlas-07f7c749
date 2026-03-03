@@ -1,0 +1,284 @@
+---
+title: Viewport controls
+description: Zoom, pan, and center your SVG previews with interactive controls
+---
+
+The preview panel includes interactive viewport controls that let you zoom, pan, and manipulate the SVG view. These controls help you inspect details, verify alignment, and test your SVG at different scales.
+
+## Available controls
+
+The preview panel header provides four main controls:
+
+### Color picker
+
+Change the `currentColor` value to see how your SVG adapts:
+
+- **Icon:** Paint palette with color swatch
+- **Function:** Opens a color picker to set the `currentColor` replacement value
+- **Location:** Rightmost button in the header
+- **Default:** Uses `betterSvg.defaultColor` setting (default: `#ffffff`)
+
+<Note>
+The color picker immediately updates the preview as you select different colors. Changes are not persisted to the file.
+</Note>
+
+### Dark background toggle
+
+Switch between transparent and dark backgrounds:
+
+- **Icon:** Half-moon circle (toggles between outline and filled)
+- **Function:** Toggles between checkerboard pattern and dark solid background
+- **Shortcut:** Click the icon or use the toggle button
+- **Default:** Starts with checkerboard pattern
+
+**Checkerboard mode:**
+- Transparent background with light checkerboard pattern
+- Helps identify transparent areas in your SVG
+- Uses `--vscode-editorWidget-background` color
+
+**Dark mode:**
+- Solid dark background (`rgba(0, 0, 0, 0.7)`)
+- Better for viewing light-colored SVGs
+- No pattern, pure background color
+
+<Tip>
+Use dark background mode to verify that your SVG has proper fill colors and isn't relying on background color.
+</Tip>
+
+### Center button
+
+Reset zoom and pan to default:
+
+- **Icon:** Target/crosshair circle
+- **Function:** Resets `scale` to 1.0 and `translateX`/`translateY` to 0
+- **Trigger:** Click the center icon
+- **Effect:** Immediately resets all viewport transformations
+
+### Optimize button
+
+Trigger SVGO optimization:
+
+- **Icon:** Lightning bolt ⚡
+- **Function:** Optimizes the current SVG using SVGO
+- **Trigger:** Click the lightning icon
+- **Effect:** Applies optimization and shows size reduction notification
+
+<Note>
+The optimize button is documented in detail on the [optimization](/features/optimization) page.
+</Note>
+
+## Zoom controls
+
+### Click to zoom in
+
+Click anywhere on the preview to zoom in:
+
+- **Trigger:** Left-click on the SVG or preview area
+- **Increment:** +0.5 (50% increase)
+- **Range:** 10% to 1000% (0.1 to 10.0 scale)
+- **Cursor:** Shows `zoom-in` cursor
+
+### Alt + click to zoom out
+
+Hold Alt and click to zoom out:
+
+- **Trigger:** Alt + left-click on the preview
+- **Decrement:** -0.2 (20% decrease)
+- **Range:** 10% to 1000%
+- **Cursor:** Shows `zoom-out` cursor when Alt is held
+
+### Scroll wheel zoom
+
+Use the scroll wheel while holding Alt:
+
+- **Trigger:** Alt + scroll wheel
+- **Increment:** ±0.1 per scroll tick
+- **Direction:** Scroll down to zoom out, scroll up to zoom in
+- **Range:** 10% to 1000%
+- **Behavior:** Prevents page scroll while Alt is held
+
+<Warning>
+Scroll wheel zoom only works when holding the Alt key. This prevents accidental zooming while scrolling the editor.
+</Warning>
+
+## Pan controls
+
+Pan (move) the SVG when zoomed in:
+
+### Drag to pan
+
+- **Trigger:** Click and drag on the preview area when `scale > 1`
+- **Cursor:** Changes to `grabbing` while panning
+- **Constraint:** Only works when zoomed in (scale > 100%)
+- **Range:** Unlimited - you can pan in any direction
+
+### Pan behavior
+
+- **Mouse down:** Starts panning, stores initial cursor position
+- **Mouse move:** Updates translation based on cursor delta
+- **Mouse up:** Stops panning, releases grab cursor
+- **Click detection:** Sets `wasPanning` flag to prevent zoom on drag
+
+<Tip>
+Zoom in first (scale > 1.0) before you can pan. The pan cursor only appears when the SVG is zoomed.
+</Tip>
+
+## Zoom level indicator
+
+The header displays the current zoom level:
+
+```
+SVG Preview (125%)
+```
+
+- **Format:** Percentage rounded to nearest integer
+- **Location:** Header title, next to "SVG Preview"
+- **Update:** Real-time as you zoom
+- **Calculation:** `Math.round(scale * 100) + '%'`
+
+## File size indicator
+
+The header also shows the current file size:
+
+```
+SVG Preview (125%) (2.3 KB)
+```
+
+- **Format:** Kilobytes with 1 decimal place
+- **Location:** After zoom level in header
+- **Update:** When SVG content changes
+- **Calculation:** `(byteSize / 1024).toFixed(1) + ' KB'`
+
+<Note>
+File size is calculated using `getHTML().length`, which measures the rendered SVG HTML size.
+</Note>
+
+## Transform implementation
+
+Viewport transformations use CSS transforms:
+
+```javascript
+transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`
+```
+
+The transform:
+- **Origin:** `center center` - scales from the center point
+- **Transition:** `0.1s ease-out` for smooth updates
+- **Apply to:** `.preview-svg-wrapper` element
+- **State:** Maintained across preview updates, reset on file switch
+
+## Keyboard interactions
+
+The extension tracks keyboard state for zoom controls:
+
+### Alt key tracking
+
+```javascript
+// Key down: Enable zoom-out mode
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Alt' || e.key === 'Option') {
+    isAltPressed = true
+    preview.classList.add('zoom-out-cursor')
+  }
+})
+
+// Key up: Disable zoom-out mode
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'Alt' || e.key === 'Option') {
+    isAltPressed = false
+    preview.classList.remove('zoom-out-cursor')
+  }
+})
+```
+
+<Warning>
+The Alt key state resets when the window loses focus to prevent stuck modifier keys.
+</Warning>
+
+## Cursor states
+
+The preview area shows different cursors based on interaction state:
+
+- **`zoom-in`** - Default cursor, click to zoom in
+- **`zoom-out`** - Alt is held, click to zoom out
+- **`grabbing`** - Panning in progress
+- **Default** - No zoom or pan available (not interacting with SVG)
+
+## Preview update behavior
+
+When the SVG content updates:
+
+### Maintained state
+- Zoom level (scale)
+- Pan position (translateX, translateY)
+- Background mode (checkerboard vs. dark)
+- Current color setting
+
+### Reset state
+- Zoom and pan reset when switching to a different SVG file
+- File size updates to reflect new content
+- SVG width is re-calculated if needed
+
+<Tip>
+Your zoom and pan settings persist while editing the same file, but reset when opening a different SVG.
+</Tip>
+
+## Technical details
+
+Viewport controls are implemented in `main.js:37-240`:
+
+### State variables
+
+```javascript
+let scale = 1              // Zoom level (0.1 to 10)
+let translateX = 0         // Horizontal pan offset
+let translateY = 0         // Vertical pan offset
+let isPanning = false      // Currently dragging
+let wasPanning = false     // Dragged recently (prevents zoom on drag end)
+let panStartX = 0          // Drag start X position
+let panStartY = 0          // Drag start Y position
+let isAltPressed = false   // Alt key state
+```
+
+### Update function
+
+```javascript
+const updateTransform = () => {
+  svgWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`
+  zoomLevel.textContent = `(${Math.round(scale * 100)}%)`
+}
+```
+
+### Reset function
+
+```javascript
+const resetZoom = () => {
+  scale = 1
+  translateX = 0
+  translateY = 0
+  updateTransform()
+}
+```
+
+## Best practices
+
+- **Use click zoom** for quick magnification changes
+- **Use scroll zoom** for fine-grained control (Alt + scroll)
+- **Pan to inspect details** after zooming in on large SVGs
+- **Center frequently** to reset view when disoriented
+- **Toggle dark mode** to test SVG on different backgrounds
+- **Check the zoom indicator** to know your current scale
+
+## Accessibility
+
+Viewport controls support both mouse and keyboard:
+
+- Click-based zoom for mouse users
+- Scroll wheel zoom for precision control
+- Keyboard modifiers (Alt) for mode switching
+- Visual cursor feedback for current mode
+- Click targets are at least 18×18px for easy interaction
+
+<Tip>
+All control buttons include `title` attributes for tooltips that explain their function.
+</Tip>

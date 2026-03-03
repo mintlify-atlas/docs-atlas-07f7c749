@@ -1,0 +1,135 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for Better SVG
+---
+
+## Common issues
+
+Find solutions to the most common issues when using Better SVG.
+
+<AccordionGroup>
+  <Accordion title="SVG preview panel not showing">
+    The SVG Preview panel only appears when you have an SVG file open. Make sure:
+    
+    - You have a `.svg` file open in the editor
+    - The `betterSvg.autoReveal` setting is enabled (default: `true`)
+    - The Explorer view is visible in the sidebar
+    
+    If the panel still doesn't appear, try:
+    
+    1. Close and reopen the SVG file
+    2. Check your VS Code version (requires VS Code 1.85.0 or later)
+    3. Reload the VS Code window (`Ctrl+R` or `Cmd+R`)
+  </Accordion>
+
+  <Accordion title="Preview shows blank or doesn't render correctly">
+    If your SVG preview appears blank or renders incorrectly:
+    
+    - **Check SVG syntax**: Ensure your SVG file has valid XML syntax
+    - **Try dark mode toggle**: Click the dark background toggle if your SVG uses light colors
+    - **Enable grid background**: The checkerboard pattern helps visualize transparent areas
+    - **Adjust currentColor**: Use the color picker to change the `currentColor` value
+    - **Check zoom level**: Try resetting the zoom by clicking multiple times
+    
+    For complex SVGs with external dependencies or references, the preview may not render all features.
+  </Accordion>
+
+  <Accordion title="Hover preview not working in framework files">
+    If hover previews aren't showing in React, Vue, Svelte, or Astro files:
+    
+    - Verify the `betterSvg.enableHover` setting is `true` (default)
+    - Ensure the file extension is supported (`.jsx`, `.tsx`, `.vue`, `.astro`, `.svelte`)
+    - The SVG must be inline in the code (external file references won't show hover previews)
+    - The SVG must have valid opening and closing tags
+    
+    Try hovering directly over the SVG opening tag (`<svg>`) if hovering over the content doesn't work.
+  </Accordion>
+
+  <Accordion title="Gutter icons not appearing">
+    If SVG preview icons aren't showing next to line numbers:
+    
+    - Check that `betterSvg.showGutterPreview` is enabled (default: `true`)
+    - Ensure you're working with a supported file type
+    - The extension must detect a complete SVG element in the code
+    - Try saving the file to trigger a refresh
+    
+    Note: Gutter icons appear where SVG elements are defined in supported files like `.jsx`, `.tsx`, `.vue`, `.svelte`, and `.astro`.
+  </Accordion>
+
+  <Accordion title="Optimize SVG button not working">
+    If the optimization button (⚡) doesn't appear or work:
+    
+    - The button only appears for `.svg` files in the editor title bar
+    - Ensure the file is saved before optimizing
+    - Check that SVGO is properly bundled with the extension
+    - For inline SVGs in framework files, use the hover preview optimization option
+    
+    If optimization fails:
+    
+    1. Make sure your SVG has valid syntax
+    2. Try optimizing with a simpler SVG first to verify the feature works
+    3. Check the VS Code Developer Console for error messages (`Help > Toggle Developer Tools`)
+  </Accordion>
+
+  <Accordion title="Settings not taking effect">
+    If configuration changes aren't working:
+    
+    - Open VS Code Settings (`Ctrl+,` or `Cmd+,`)
+    - Search for "Better SVG" to see all extension settings
+    - Make sure you're editing the correct scope (User vs Workspace)
+    - Reload the VS Code window after changing settings
+    
+    For `defaultColor`, ensure you use valid hex format (e.g., `#ffffff` or `#fff`).
+  </Accordion>
+
+  <Accordion title="Extension not activating">
+    Better SVG activates when you open supported file types. If it's not activating:
+    
+    - Check that the extension is installed and enabled
+    - Open a `.svg` file to trigger activation
+    - Verify your VS Code version is 1.85.0 or later
+    - Check for conflicts with other SVG extensions
+    - Look for activation errors in the Output panel (select "Better SVG" from the dropdown)
+    
+    Supported activation languages: `svg`, `xml`, `astro`, `javascriptreact`, `typescriptreact`, `svelte`, `vue`, `liquid`.
+  </Accordion>
+
+  <Accordion title="Zoom and pan controls not responding">
+    If zoom and pan controls aren't working in the preview:
+    
+    - **Click to zoom in**: Click directly on the SVG preview
+    - **Zoom out**: Hold `Alt` and click
+    - **Smooth zoom**: Hold `Alt` and scroll with your mouse wheel
+    - **Pan**: Click and drag the SVG
+    
+    Make sure your cursor is over the preview panel and not the editor. If issues persist, try closing and reopening the SVG file.
+  </Accordion>
+
+  <Accordion title="Optimization removes important attributes">
+    If SVGO optimization removes attributes you need:
+    
+    - Framework-specific attributes (`v-if`, `on:click`, `className`, etc.) should be preserved automatically
+    - To keep `class` attributes, set `betterSvg.removeClasses` to `false` in settings
+    - JSX interpolation and spread operators (`{...props}`) are preserved
+    
+    If you need more control over optimization, consider:
+    
+    1. Adjusting the `betterSvg.removeClasses` setting
+    2. Using a custom SVGO configuration file in your project (if supported in future versions)
+    3. Manually editing the SVG after optimization
+  </Accordion>
+</AccordionGroup>
+
+## Still having issues?
+
+If you're experiencing issues not covered here:
+
+1. Check the [GitHub Issues](https://github.com/midudev/better-svg/issues) to see if others have reported the same problem
+2. Review the [extension's changelog](/resources/changelog) for recent changes
+3. Report a new issue with:
+   - Your VS Code version
+   - Better SVG extension version
+   - Steps to reproduce the problem
+   - Any error messages from the Developer Console
+
+You can also reach out to the author at [hi@midu.dev](mailto:hi@midu.dev).

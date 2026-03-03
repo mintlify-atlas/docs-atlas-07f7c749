@@ -1,0 +1,214 @@
+---
+title: Gutter icons
+description: Display inline SVG previews in the editor gutter next to line numbers
+---
+
+Gutter icons display small SVG previews directly in the editor gutter (the area next to line numbers) for all SVG elements found in your code. This provides at-a-glance visual feedback without needing to hover or open a preview panel.
+
+## How it works
+
+When you open a file containing SVG code, Better SVG automatically:
+1. Scans the document for SVG elements
+2. Renders each SVG as a small icon
+3. Places the icon in the gutter at the start of each SVG element
+4. Updates the icons as you edit the document
+
+<Note>
+Gutter icons appear for all SVG elements in supported file types, not just standalone `.svg` files.
+</Note>
+
+## Configuration
+
+Enable or disable gutter preview icons:
+
+```json
+{
+  "betterSvg.showGutterPreview": true
+}
+```
+
+- **Default:** `true`
+- **Type:** `boolean`
+- **Description:** Show SVG preview icons next to line numbers in supported files
+
+When disabled, SVG elements will not display gutter icons.
+
+## Supported languages
+
+Gutter icons appear in the same file types as hover preview:
+
+- Astro
+- EJS
+- ERB
+- HTML
+- JavaScript
+- JavaScript React
+- Liquid
+- PHP
+- Svelte
+- SVG
+- TypeScript
+- TypeScript React
+- Vue
+- XML
+
+## Update behavior
+
+Gutter icons update automatically when:
+
+### Document changes
+- **Debounce delay:** 500ms after typing stops
+- **Detection:** Uses the regex `<svg[\s\S]*?>[\s\S]*?<\/svg>` to find SVG elements
+- **Placement:** Icons appear at the starting position of each SVG element
+
+### Active editor changes
+- Icons immediately update when switching between files
+- Previous decorations are disposed to prevent memory leaks
+
+### Theme changes
+- Icons automatically re-render when you change VS Code themes
+- `currentColor` values adapt to the new theme's foreground color
+
+<Tip>
+The 500ms debounce prevents excessive re-rendering while you type, improving editor performance.
+</Tip>
+
+## Theme adaptation
+
+Gutter icons adapt to your VS Code theme:
+
+- **Dark theme:** `currentColor` → `#ffffff` (white)
+- **Light theme:** `currentColor` → `#000000` (black)
+- **High contrast:** Uses white for visibility
+
+This ensures icons are always visible against the gutter background.
+
+## Size and scaling
+
+Gutter icons enforce a minimum size of 16px to ensure visibility in the narrow gutter area:
+
+- SVGs without explicit dimensions use their `viewBox` to calculate aspect ratio
+- Small SVGs are scaled up proportionally to 16px
+- Large SVGs are scaled down to fit the gutter
+- Aspect ratio is always preserved
+
+<Note>
+The `gutterIconSize` is set to `contain`, which ensures the icon fits within the gutter without overflow.
+</Note>
+
+## JSX and framework support
+
+Gutter icons handle the same JSX transformations as hover preview:
+
+### React/JSX
+For `.jsx` and `.tsx` files:
+- Converts `className` to `class`
+- Transforms camelCase to kebab-case attributes
+- Handles JSX expressions by encoding them
+
+### Framework directives
+Preserves directives from:
+- Vue (`v-`, `:`, `@`)
+- Svelte (`on:`, `bind:`, etc.)
+- Astro (`client:`)
+
+### Validation
+SVGs with unresolved JSX expressions are skipped:
+- The extension removes `<style>` tags during validation
+- If remaining content contains `{` or `}`, the icon is not rendered
+- This prevents showing broken or invalid previews
+
+<Warning>
+If your SVG contains dynamic expressions like `{variable}`, the gutter icon will not appear. This is intentional to avoid showing incorrect previews.
+</Warning>
+
+## Stroke and fill propagation
+
+Like hover preview, gutter icons propagate parent SVG attributes to children:
+
+```jsx
+<svg stroke="blue">
+  <circle cx="10" cy="10" r="5" />
+</svg>
+```
+
+The `stroke="blue"` attribute is automatically applied to the `<circle>` during rendering.
+
+Affected elements:
+- `path`
+- `line`
+- `polyline`
+- `polygon`
+- `circle`
+- `ellipse`
+- `rect`
+
+## Technical implementation
+
+Gutter icons are implemented in `svgGutterPreview.ts:255`:
+
+- **Class:** `SvgGutterPreview`
+- **Decoration type:** `createTextEditorDecorationType` with `gutterIconPath`
+- **Icon format:** Base64-encoded data URIs
+- **Range:** Zero-length range at the start position of each SVG
+
+### Why zero-length ranges?
+
+Gutter icons use zero-length ranges (start position = end position) to:
+- Display only one icon per SVG element
+- Avoid highlighting text in the editor
+- Position the icon precisely at the opening `<svg>` tag
+
+## Performance optimizations
+
+The gutter preview system includes several performance features:
+
+### Decoration disposal
+- Previous decorations are disposed when updating
+- Prevents memory leaks when switching between files
+- Clears decorations when the setting is disabled
+
+### Debounced updates
+- 500ms delay after document changes
+- Reduces CPU usage during rapid typing
+- Uses `setTimeout` to batch updates
+
+### Selective rendering
+- Only renders valid SVG elements
+- Skips SVGs with unresolved expressions
+- Base64 encoding prevents rendering issues
+
+<Tip>
+If you notice performance issues with very large files containing many SVGs, consider disabling gutter preview and using hover preview instead.
+</Tip>
+
+## Decoration lifecycle
+
+The lifecycle of gutter decorations:
+
+1. **Creation:** When an SVG is detected, a decoration type is created with the SVG as a data URI
+2. **Application:** The decoration is applied to the zero-length range at the SVG start
+3. **Storage:** The decoration type is stored in a `Map<string, vscode.TextEditorDecorationType[]>`
+4. **Disposal:** When the document updates or closes, decorations are disposed
+5. **Recreation:** New decorations are created for the updated content
+
+## Best practices
+
+- Use gutter icons for quick visual scanning of multiple SVGs in a file
+- Disable the feature if you work with very large files containing dozens of SVGs
+- Combine with hover preview to get both quick glances and detailed views
+- If an icon looks incorrect, check that your SVG has valid XML structure
+
+## Troubleshooting
+
+<Warning>
+If gutter icons don't appear, check:
+- The setting `betterSvg.showGutterPreview` is enabled
+- Your SVG has valid opening and closing `<svg>` tags
+- The SVG doesn't contain unresolved JSX expressions
+</Warning>
+
+Common issues:
+- **Icons not updating:** Wait for the 500ms debounce to complete
+- **Icons missing:** Verify your SVG uses valid XML/JSX syntax
+- **Icons look wrong:** Check that `currentColor` is defined or can be replaced

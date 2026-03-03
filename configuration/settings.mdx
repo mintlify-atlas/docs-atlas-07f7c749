@@ -1,0 +1,40 @@
+---
+title: Settings
+description: Configure Better SVG extension settings to customize your SVG preview and optimization experience
+---
+
+Better SVG provides several configuration options to customize the extension's behavior. All settings can be configured in your VS Code settings (File > Preferences > Settings or Code > Preferences > Settings).
+
+## Panel behavior
+
+<ParamField path="betterSvg.autoReveal" type="boolean" default={true}>
+  Automatically reveal and expand the SVG Preview panel in Explorer when opening SVG files
+</ParamField>
+
+<ParamField path="betterSvg.autoCollapse" type="boolean" default={true}>
+  Automatically collapse the SVG Preview panel in Explorer when closing all SVG files
+</ParamField>
+
+## Preview settings
+
+<ParamField path="betterSvg.defaultColor" type="string" default="#ffffff">
+  Default color for currentColor in the SVG preview (hex format, e.g., #ffffff)
+  
+  Must be a valid hex color code in the format `#RRGGBB` or `#RGB`.
+</ParamField>
+
+<ParamField path="betterSvg.enableHover" type="boolean" default={true}>
+  Enable hover preview for SVG elements in supported files
+</ParamField>
+
+<ParamField path="betterSvg.showGutterPreview" type="boolean" default={true}>
+  Show SVG preview icons next to line numbers in supported files
+</ParamField>
+
+## Optimization settings
+
+<ParamField path="betterSvg.removeClasses" type="boolean" default={true}>
+  Remove class attributes from SVG elements during optimization
+  
+  When enabled, SVGO will strip class attributes from your SVG elements when you run the optimize command.
+</ParamField>

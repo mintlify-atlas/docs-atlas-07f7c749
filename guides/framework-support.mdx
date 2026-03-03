@@ -1,0 +1,240 @@
+---
+title: Framework support
+description: How Better SVG works with React, Vue, Svelte, and Astro components
+---
+
+Better SVG has intelligent support for modern JavaScript frameworks. It can detect and handle JSX syntax, framework-specific attributes, and automatically convert between JSX and valid SVG during optimization.
+
+## Supported frameworks
+
+Better SVG works seamlessly with these frameworks:
+
+- **React** (`.jsx`, `.tsx`) - Full JSX support with camelCase attributes
+- **Vue** (`.vue`) - Vue directives and template syntax preserved
+- **Svelte** (`.svelte`) - Svelte directives and bindings preserved
+- **Astro** (`.astro`) - Astro directives preserved
+- **HTML** (`.html`) - Standard HTML/SVG
+- **PHP**, **EJS**, **ERB**, **Liquid** - Template languages
+
+The full list of supported languages is defined in the extension:
+
+```typescript
+// From consts.ts:17-32
+export const SUPPORTED_LANGUAGES = [
+  'astro',
+  'ejs',
+  'erb',
+  'html',
+  'javascript',
+  'javascriptreact',
+  'php',
+  'svelte',
+  'svg',
+  'typescript',
+  'typescriptreact',
+  'vue',
+  'xml',
+  'liquid',
+]
+```
+
+## JSX transformation
+
+### How it works
+
+When you optimize an inline SVG in React or TypeScript React files, Better SVG:
+
+<Steps>
+  <Step title="Detects JSX syntax">
+    Identifies JSX-specific patterns like `className`, camelCase attributes, expression values `{value}`, and spread operators `{...props}`.
+  </Step>
+  
+  <Step title="Converts to valid SVG">
+    Transforms JSX syntax into valid SVG XML that SVGO can process:
+    - `className` → `class`
+    - `strokeWidth` → `stroke-width`
+    - `{value}` → encoded placeholder
+    - `{...props}` → `data-spread-*` attribute
+  </Step>
+  
+  <Step title="Runs optimization">
+    SVGO optimizes the valid SVG while preserving the encoded placeholders.
+  </Step>
+  
+  <Step title="Converts back to JSX">
+    Transforms the optimized SVG back to JSX syntax, restoring all original patterns.
+  </Step>
+</Steps>
+
+### JSX detection
+
+The extension automatically detects if an SVG uses JSX syntax by checking for:
+
+```typescript
+// From svgTransform.ts:102-159
+export function isJsxSvg (svgContent: string): boolean {
+  // Check for JSX expression values like ={2} or ={variable}
+  if (/=\{[^}]+\}/.test(svgContent)) {
+    return true
+  }
+
+  // Check for spread attributes like {...props}
+  if (/\{\.\.\.\.[^}]+\}/.test(svgContent)) {
+    return true
+  }
+
+  // Check for className attribute
+  if (/\bclassName=/.test(svgContent)) {
+    return true
+  }
+
+  // Check for any known JSX camelCase attributes
+  for (const jsxAttr of Object.keys(jsxToSvgAttributeMap)) {
+    const regex = new RegExp(`\\b${jsxAttr}=`, 'g')
+    if (regex.test(svgContent)) {
+      return true
+    }
+  }
+  // ... more checks
+}
+```
+
+### Attribute mapping
+
+Better SVG maintains a comprehensive mapping of JSX camelCase to SVG kebab-case attributes:
+
+```typescript
+// From svgTransform.ts:44-89 (excerpt)
+export const jsxToSvgAttributeMap: Record<string, string> = {
+  // Stroke attributes
+  strokeWidth: 'stroke-width',
+  strokeLinecap: 'stroke-linecap',
+  strokeLinejoin: 'stroke-linejoin',
+  strokeDasharray: 'stroke-dasharray',
+  strokeDashoffset: 'stroke-dashoffset',
+  strokeMiterlimit: 'stroke-miterlimit',
+  strokeOpacity: 'stroke-opacity',
+  // Fill attributes
+  fillOpacity: 'fill-opacity',
+  fillRule: 'fill-rule',
+  // Font attributes
+  fontFamily: 'font-family',
+  fontSize: 'font-size',
+  // ... and many more
+}
+```
+
+## Framework-specific examples
+
+### React / TypeScript React
+
+Better SVG automatically handles React's JSX syntax:
+
+```tsx
+// Before optimization
+<svg className="icon" strokeWidth={2} fillRule="evenodd">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+</svg>
+
+// After optimization (preserves JSX syntax)
+<svg className="icon" strokeWidth={2} fillRule="evenodd">
+  <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" />
+</svg>
+```
+
+Note how:
+- `className` is preserved (not converted to `class`)
+- `strokeWidth` and `fillRule` remain in camelCase
+- The path is optimized (unnecessary `M` command removed)
+
+### Vue
+
+Vue directives are detected and preserved:
+
+```vue
+<svg :width="size" @click="handleClick" v-bind:height="size">
+  <circle :cx="x" :cy="y" r="10" />
+</svg>
+```
+
+Better SVG preserves:
+- `:width` (shorthand for `v-bind:width`)
+- `@click` (shorthand for `v-on:click`)
+- `v-bind:height`
+
+### Svelte
+
+Svelte directives are also preserved:
+
+```svelte
+<svg on:click={handleClick} bind:clientWidth>
+  <circle cx={x} cy={y} r="10" />
+</svg>
+```
+
+Preserved patterns:
+- `on:click`
+- `bind:clientWidth`
+- Expression values `{x}` and `{y}`
+
+### Astro
+
+Astro client directives are preserved:
+
+```astro
+<svg client:load width={size}>
+  <path d="..." />
+</svg>
+```
+
+## Optimization behavior
+
+### React/TypeScript React (camelCase mode)
+
+When `document.languageId` is `javascriptreact` or `typescriptreact`:
+
+```typescript
+// From extension.ts:340
+const options = {
+  useCamelCase: ['javascriptreact', 'typescriptreact'].includes(document.languageId)
+}
+```
+
+- Attributes are converted: `strokeWidth` ↔ `stroke-width`
+- `className` ↔ `class`
+- Expression values are encoded and decoded
+
+### Other frameworks (kebab-case mode)
+
+For Vue, Svelte, Astro, and HTML:
+
+- Attributes remain in kebab-case
+- Framework directives (`:`, `@`, `v-`, `on:`, `bind:`, `client:`) are preserved
+- Expression syntax is encoded and decoded
+
+## Technical implementation
+
+The transformation process uses these key functions:
+
+```typescript
+// Convert JSX to SVG before optimization
+export function convertJsxToSvg (svgContent: string, options: OptimizationOptions): string
+
+// Convert SVG back to JSX after optimization  
+export function convertSvgToJsx (svgContent: string, options: OptimizationOptions): string
+
+// Prepare for optimization (detects JSX, converts if needed)
+export function prepareForOptimization (svgContent: string, options: OptimizationOptions): {
+  preparedSvg: string
+  wasJsx: boolean
+}
+
+// Convert back if original was JSX
+export function finalizeAfterOptimization (
+  optimizedSvg: string, 
+  wasJsx: boolean, 
+  options: OptimizationOptions
+): string
+```
+
+These functions are defined in `svgTransform.ts` and handle all the complexity of converting between JSX and SVG while preserving framework-specific syntax.

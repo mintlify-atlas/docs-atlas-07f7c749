@@ -1,80 +1,147 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get up and running with Better SVG in under 2 minutes
 ---
 
-## Get started in three steps
+## Open an SVG file
 
-Get your documentation site running locally and make your first customization.
+<Steps>
+  <Step title="Create or open an SVG file">
+    Open any `.svg` file in your workspace. If you don't have one, create a new file called `icon.svg` and paste this code:
 
-### Step 1: Set up your local environment
+    ```xml
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 6v6l4 2"/>
+    </svg>
+    ```
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+  <Step title="View the preview panel">
+    The **SVG Preview** panel automatically appears in the Explorer sidebar when you open an SVG file. You'll see your icon rendered in real-time.
+
+    <Tip>
+      If the panel doesn't appear, check that `betterSvg.autoReveal` is enabled in your settings.
+    </Tip>
+  </Step>
+
+  <Step title="Explore preview controls">
+    Try these interactive controls in the preview panel:
+
+    - **Click** on the preview to zoom in
+    - **Alt+Click** to zoom out
+    - **Alt+Scroll** to pan through the graphic
+    - **Toggle background** to see your SVG on light, dark, or grid backgrounds
+    - **Change currentColor** using the color picker to test different theme colors
+  </Step>
+</Steps>
+
+## Optimize your SVG
+
+Reduce file size with built-in SVGO optimization:
+
+<Steps>
+  <Step title="Click the optimization button">
+    Look for the ⚡ icon in the editor toolbar (top-right corner) and click it.
+  </Step>
+
+  <Step title="Review the results">
+    Better SVG shows you the optimization results:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```
+    SVG optimized. Reduced from 0.45 KB to 0.32 KB (28.89% saved)
+    ```
 
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+    The extension automatically:
+    - Removes unnecessary attributes
+    - Cleans up whitespace
+    - Optimizes path data
+    - Removes comments and doctype declarations
+  </Step>
+</Steps>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Optimization is non-destructive. You can always undo changes with `Cmd+Z` / `Ctrl+Z`.
 </Note>
+
+## Work with inline SVG
+
+Better SVG works seamlessly with SVG code inside framework components:
+
+<Steps>
+  <Step title="Open a React component">
+    Create or open a `.tsx` or `.jsx` file with inline SVG:
+
+    ```tsx
+    export function ClockIcon() {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="See gutter previews">
+    Notice the small SVG icon that appears in the gutter (next to the line numbers) where the `<svg>` tag starts.
+  </Step>
+
+  <Step title="Hover for instant preview">
+    Hover your mouse over the SVG code to see:
+    - A larger preview of the rendered SVG
+    - Current file size
+    - A quick "Optimize SVG" action link
+
+    Click the optimize link to shrink the inline SVG while preserving JSX syntax like `strokeWidth`, `className`, and event handlers.
+  </Step>
+</Steps>
+
+<Tip>
+  Better SVG preserves framework-specific attributes during optimization, including:
+  - React: `className`, `strokeWidth`, `onClick`, spread operators `{...props}`
+  - Vue: `v-if`, `v-for`, `:class`
+  - Svelte: `on:click`, `class:active`
+</Tip>
+
+## Configure settings
+
+Customize Better SVG behavior in VS Code settings:
+
+1. Open **Settings** (`Cmd+,` / `Ctrl+,`)
+2. Search for "Better SVG"
+3. Adjust these common settings:
+
+| Setting | Description | Default |
+|---------|-------------|----------|
+| `betterSvg.autoReveal` | Auto-show preview panel when opening SVG files | `true` |
+| `betterSvg.enableHover` | Enable hover preview for inline SVG | `true` |
+| `betterSvg.showGutterPreview` | Show icons in the gutter | `true` |
+| `betterSvg.defaultColor` | Default color for `currentColor` | `#ffffff` |
+
+## You're all set
+
+You now know how to:
+
+- ✓ Preview SVG files with interactive controls
+- ✓ Optimize SVGs with one click
+- ✓ Work with inline SVG in React, Vue, and other frameworks
+- ✓ Customize Better SVG settings
+
+<CardGroup cols={2}>
+  <Card
+    title="Learn about optimization"
+    icon="zap"
+    href="/features/optimization"
+  >
+    Deep dive into SVGO optimization features
+  </Card>
+  <Card
+    title="Framework support"
+    icon="code"
+    href="/guides/framework-support"
+  >
+    See all supported languages and frameworks
+  </Card>
+</CardGroup>

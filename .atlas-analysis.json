@@ -1,0 +1,84 @@
+{
+  "projectType": "general",
+  "projectName": "Better SVG",
+  "projectDescription": "Visual Studio Code extension for SVG preview, optimization, and enhanced development workflow.",
+  "theme": "palm",
+  "primaryColor": "#df6c31",
+  "lightColor": "#ff8a4c",
+  "darkColor": "#c55a20",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Features",
+        "pages": [
+          "features/preview-panel",
+          "features/hover-preview",
+          "features/gutter-icons",
+          "features/optimization",
+          "features/viewport-controls"
+        ]
+      },
+      {
+        "group": "Configuration",
+        "pages": [
+          "configuration/settings",
+          "configuration/supported-languages"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/optimizing-svgs",
+          "guides/framework-support",
+          "guides/keyboard-shortcuts"
+        ]
+      },
+      {
+        "group": "Resources",
+        "pages": [
+          "resources/troubleshooting",
+          "resources/changelog",
+          "resources/contributing"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Live SVG preview panel in Explorer sidebar",
+    "Hover preview with instant SVG visualization",
+    "Gutter icons showing SVG previews in code",
+    "SVGO-powered optimization with framework-aware transformations",
+    "Interactive viewport controls (zoom, pan, drag)",
+    "currentColor customization with color picker",
+    "Dark background and grid overlay toggles",
+    "Multi-framework support (React, Vue, Svelte, Astro)",
+    "JSX/TSX attribute transformation (camelCase ↔ kebab-case)",
+    "Auto-reveal and auto-collapse panel behavior"
+  ],
+  "publicApiSurface": [
+    "betterSvg.optimize - Command to optimize SVG files",
+    "betterSvg.optimizeFromHover - Command to optimize inline SVGs from hover",
+    "betterSvg.preview - Webview panel for SVG preview",
+    "betterSvg.autoReveal - Setting to auto-reveal preview panel",
+    "betterSvg.autoCollapse - Setting to auto-collapse preview panel",
+    "betterSvg.enableHover - Setting to enable hover preview",
+    "betterSvg.showGutterPreview - Setting to show gutter icons",
+    "betterSvg.defaultColor - Setting for default currentColor value",
+    "betterSvg.removeClasses - Setting to remove class attributes during optimization",
+    "SvgPreviewProvider - Webview provider for preview panel",
+    "SvgHoverProvider - Hover provider for inline SVG preview",
+    "SvgGutterPreview - Gutter decoration provider",
+    "convertJsxToSvg - Transform JSX SVG syntax to valid SVG XML",
+    "convertSvgToJsx - Transform SVG XML to JSX syntax",
+    "prepareForOptimization - Prepare SVG content for SVGO optimization",
+    "finalizeAfterOptimization - Restore framework-specific syntax after optimization"
+  ]
+}
